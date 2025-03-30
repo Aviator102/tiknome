@@ -1,8 +1,9 @@
+from flask import Flask, render_template, request
 import requests
-from flask import Flask, jsonify
 
 app = Flask(__name__)
 
+# Função para consultar a existência do usuário no TikTok
 def consultar_exist(username):
     url = f"https://countik.com/api/exist/{username}"
 
@@ -21,6 +22,7 @@ def consultar_exist(username):
     else:
         return None
 
+# Função para consultar os vídeos do usuário no TikTok
 def consultar_analyze(sec_uid):
     all_videos = []
     page = 1
@@ -36,36 +38,42 @@ def consultar_analyze(sec_uid):
         }
 
         response = requests.get(url, headers=headers)
+
         if response.status_code == 200:
             data = response.json()
             if not data.get("videos"):
-                break
+                break  # Se não houver mais vídeos, parar a busca
             all_videos.extend(data.get("videos", []))
-            page += 1
+            page += 1  # Ir para a próxima página
         else:
             break
 
     return all_videos
 
-# Função serverless para Vercel
-def vercel_handler(request):
-    username = request.args.get('username')
-    
-    if not username:
-        return jsonify({"error": "Nome de usuário não informado."}), 400
-
-    dados_exist = consultar_exist(username)
-    
-    if dados_exist:
-        sec_uid = dados_exist.get("sec_uid")
-        if sec_uid:
-            dados_analyze = consultar_analyze(sec_uid)
-            return jsonify(dados_analyze)
+# Rota para renderizar a página inicial
+@app.route("/", methods=["GET", "POST"])
+def home():
+    if request.method == "POST":
+        username = request.form["username"]
+        if not username:
+            return render_template("index.html", message="Por favor, insira um nome de usuário.")
+        
+        dados_exist = consultar_exist(username)
+        if dados_exist:
+            sec_uid = dados_exist.get("sec_uid")
+            if sec_uid:
+                dados_analyze = consultar_analyze(sec_uid)
+                if dados_analyze:
+                    return render_template("index.html", videos=dados_analyze)
+                else:
+                    return render_template("index.html", message="Nenhum vídeo encontrado.")
+            else:
+                return render_template("index.html", message="sec_uid não encontrado.")
         else:
-            return jsonify({"error": "sec_uid não encontrado."}), 400
-    else:
-        return jsonify({"error": "Falha ao obter dados do usuário."}), 400
+            return render_template("index.html", message="Erro ao consultar o usuário.")
 
-# Vercel precisa retornar esta função
-def handler(request):
-    return vercel_handler(request)
+    return render_template("index.html")
+
+# Iniciar a aplicação
+if __name__ == "__main__":
+    app.run(debug=True)
