@@ -37,6 +37,20 @@
             border: 1px solid #ccc;
             border-radius: 5px;
         }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        a {
+            text-decoration: none;
+            color: #4CAF50;
+        }
+        a:hover {
+            color: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -53,10 +67,13 @@
         {% endif %}
 
         {% if videos %}
+            <h2>Vídeos encontrados:</h2>
             <ul>
                 {% for video in videos %}
                     <li>
-                        <a href="https://www.tiktok.com/@{{ video['author']['uniqueId'] }}/video/{{ video['id'] }}" target="_blank">{{ video['desc'] }}</a>
+                        <a href="https://www.tiktok.com/@{{ video['author']['uniqueId'] }}/video/{{ video['id'] }}" target="_blank">
+                            {{ video['desc'] }}
+                        </a>
                     </li>
                 {% endfor %}
             </ul>
