@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TikTok Video Viewer</title>
-
-    <!-- Estilos CSS incorporados -->
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,119 +11,56 @@
             margin: 0;
             padding: 0;
         }
-
         .container {
             width: 80%;
-            max-width: 600px;
-            margin: 50px auto;
+            margin: auto;
             background-color: white;
             padding: 20px;
+            border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-
-        h1 {
-            text-align: center;
-        }
-
-        button {
-            width: 100%;
-            padding: 10px;
+        .btn {
             background-color: #4CAF50;
             color: white;
+            padding: 10px 20px;
             border: none;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
-            margin-top: 20px;
         }
-
-        input {
-            width: 100%;
+        .btn:hover {
+            background-color: #45a049;
+        }
+        input[type="text"] {
+            width: 60%;
             padding: 10px;
-            font-size: 16px;
-            margin-bottom: 20px;
+            margin: 10px 0;
             border: 1px solid #ccc;
-        }
-
-        #videos {
-            margin-top: 20px;
-        }
-
-        a {
-            display: block;
-            color: #4CAF50;
-            text-decoration: none;
-            margin: 5px 0;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
-
     <div class="container">
-        <h1>TikTok Video URL Viewer</h1>
-        <label for="username">Nome de Usuário TikTok:</label>
-        <input type="text" id="username" placeholder="Digite o nome de usuário">
-        <button onclick="consultar()">Consultar Dados</button>
-        
-        <h2 id="quantidade">Vídeos encontrados: 0</h2>
+        <h1>TikTok Video Viewer</h1>
+        <form method="POST">
+            <label for="username">Nome de Usuário TikTok:</label>
+            <input type="text" name="username" id="username" required>
+            <button type="submit" class="btn">Consultar</button>
+        </form>
 
-        <div id="videos"></div>
+        {% if message %}
+            <p>{{ message }}</p>
+        {% endif %}
 
-        <button onclick="copiarLinks()">Copiar Links</button>
+        {% if videos %}
+            <ul>
+                {% for video in videos %}
+                    <li>
+                        <a href="https://www.tiktok.com/@{{ video['author']['uniqueId'] }}/video/{{ video['id'] }}" target="_blank">{{ video['desc'] }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
     </div>
-
-    <!-- Script JavaScript incorporado -->
-    <script>
-        function consultar() {
-            const username = document.getElementById("username").value;
-
-            if (!username) {
-                alert("Por favor, insira um nome de usuário.");
-                return;
-            }
-
-            fetch(`/consultar?username=${username}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        alert(data.error);
-                    } else {
-                        mostrarVideos(data);
-                    }
-                })
-                .catch(error => alert("Erro ao consultar vídeos"));
-        }
-
-        function mostrarVideos(videos) {
-            const videosDiv = document.getElementById("videos");
-            videosDiv.innerHTML = ""; // Limpar vídeos anteriores
-
-            document.getElementById("quantidade").innerText = `Vídeos encontrados: ${videos.length}`;
-
-            videos.forEach(video => {
-                const videoLink = `https://www.tiktok.com/@${video.sec_user_id}/video/${video.id}`;
-                const a = document.createElement("a");
-                a.href = videoLink;
-                a.textContent = videoLink;
-                videosDiv.appendChild(a);
-            });
-        }
-
-        function copiarLinks() {
-            const videosDiv = document.getElementById("videos");
-            const links = [...videosDiv.getElementsByTagName("a")].map(a => a.href);
-
-            if (links.length === 0) {
-                alert("Nenhum vídeo selecionado.");
-                return;
-            }
-
-            navigator.clipboard.writeText(links.join("\n"))
-                .then(() => {
-                    alert("Links copiados para a área de transferência!");
-                })
-                .catch(err => alert("Erro ao copiar os links"));
-        }
-    </script>
-
 </body>
 </html>
